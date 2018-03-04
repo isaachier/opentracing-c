@@ -26,7 +26,7 @@ make test
 ## API overview for those adding instrumentation
 
 Everyday consumers of this `opentracing-c` package really only need to worry
-about a couple of key abstractions: the `opentracing_tracer_start_span`
+about a couple of key abstractions: the `opentracing_tracer` `start_span`
 function, the `opentracing_span` interface, and binding an `opentracing_tracer`
 at `main()`-time. Here are code snippets demonstrating some important use cases.
 
