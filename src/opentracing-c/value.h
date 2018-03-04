@@ -5,6 +5,8 @@
 
 #include <opentracing-c/common.h>
 
+/** @file */
+
 /**
  * Value types.
  */

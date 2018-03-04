@@ -3,10 +3,44 @@
 
 #include <opentracing-c/span.h>
 
+/** @file */
+
+typedef struct opentracing_tag {
+    char* key;
+    opentracing_value value;
+} opentracing_tag;
+
 typedef struct opentracing_start_span_options {
+    /**
+     * Start time using monotonic clock.
+     */
     opentracing_duration start_time_steady;
+
+    /**
+     * Start time using realtime clock.
+     */
     opentracing_timestamp start_time_system;
-    /* TODO: references and tags */
+
+    /**
+     * Array of references. May be NULL.
+     */
+    const opentracing_span_reference* references;
+
+    /**
+     * Number of references in array. If references is NULL, num_references
+     * must be zero.
+     */
+    int num_references;
+
+    /**
+     * Array of tags. May be NULL.
+     */
+    const opentracing_tag* tags;
+
+    /**
+     * Number of tags in array. If tags is NULL, num_tags must be zero.
+     */
+    int num_tags;
 } opentracing_start_span_options;
 
 #define OPENTRACINGC_TRACER_SUBCLASS                                          \

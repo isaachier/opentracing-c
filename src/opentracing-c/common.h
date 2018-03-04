@@ -3,6 +3,8 @@
 
 #include <time.h>
 
+/** @file */
+
 /** Boolean type. */
 typedef enum { opentracing_true = 1, opentracing_false = 0 } opentracing_bool;
 
