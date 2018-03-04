@@ -201,7 +201,7 @@ other causal reference.
     typedef struct custom_carrier_reader {
         /* OPENTRACINGC_TEXT_MAP_READER_SUBCLASS expands to this function
            pointer. Not using macro for clarity. */
-        void (*foreach_key)(opentracing_text_map_reader* reader,
+        opentracing_bool (*foreach_key)(opentracing_text_map_reader* reader,
                                         opentracing_bool (*f)(
                                             void*,
                                             const char*,
@@ -219,6 +219,7 @@ other causal reference.
         text_map_iterator it;
         const char* key;
         const char* value;
+        opentracing_bool success;
 
         assert(reader != NULL);
         assert(f != NULL);
@@ -227,7 +228,7 @@ other causal reference.
         it = text_map_get_iterator(r->map);
         if (it == NULL) {
             /* Failed to allocate iterator. */
-            return;
+            return opentracing_false;
         }
 
         for (; text_map_iterator_has_next(it);
@@ -235,12 +236,16 @@ other causal reference.
             assert(key != NULL);
             assert(value != NULL);
             if (!f(arg, key, value)) {
+                success = opentracing_false;
                 goto cleanup;
             }
         }
 
+        success = opentracing_true;
+
     cleanup:
         text_map_iterator_destroy(it);
+        return success;
     }
 
     /* Initialize new reader with existing map. */
