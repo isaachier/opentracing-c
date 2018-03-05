@@ -51,7 +51,7 @@ function main() {
 
     if make all -j3; then
         if valgrind --error-exitcode=1 --track-origins=yes \
-            --leak-check=full ./default_test; then
+            --leak-check=full ./tracer_test; then
             info "All tests compiled and passed"
         else
             error "Tests failed"
