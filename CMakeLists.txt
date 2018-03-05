@@ -35,7 +35,8 @@ cmake_dependent_option(OPENTRACINGC_COVERAGE "Enable code coverage" OFF
                        "BUILD_TESTING;debug_build" OFF)
 if(OPENTRACINGC_COVERAGE)
   include(CodeCoverage)
-  append_coverage_compiler_flags(flags)
+  append_coverage_compiler_flags(coverage_flags)
+  string(REPLACE " " ";" coverage_flags "${coverage_flags}")
   set(COVERAGE_EXCLUDES "test/*")
 endif()
 
@@ -52,12 +53,15 @@ target_include_directories(opentracingc PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
   $<INSTALL_INTERFACE:include>)
-target_compile_options(opentracingc PUBLIC ${flags})
+target_compile_options(opentracingc PUBLIC ${flags} ${coverage_flags})
 
 if(BUILD_TESTING)
   add_executable(tracer_test "test/tracer_test.c")
   target_link_libraries(tracer_test PUBLIC opentracingc)
   add_test(tracer_test tracer_test)
+  if(OPENTRACINGC_COVERAGE)
+    setup_target_for_coverage(NAME tracer_test_coverage EXECUTABLE tracer_test)
+  endif()
 endif()
 
 generate_documentation()
