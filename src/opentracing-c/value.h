@@ -7,6 +7,10 @@
 
 /** @file */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Value types.
  */
@@ -39,5 +43,9 @@ typedef struct opentracing_value {
         char* string_value;
     };
 } opentracing_value;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* OPENTRACINGC_VALUE_H */

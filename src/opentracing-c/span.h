@@ -6,6 +6,10 @@
 
 /** @file */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Span context interface. Span context represents span state that must be
  * propagated to descendant spans and across boundaries (e.g. trace I:D,
@@ -231,5 +235,9 @@ typedef struct opentracing_span {
      */
     struct opentracing_tracer* (*tracer)(struct opentracing_span* span);
 } opentracing_span;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* OPENTRACINGC_SPAN_H */

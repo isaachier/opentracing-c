@@ -6,6 +6,10 @@
 
 /** @file */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /** Simple tag representation. */
 typedef struct opentracing_tag {
     /** String key. */
@@ -78,8 +82,12 @@ typedef struct opentracing_tracer {
      * @return Zero on success, error code on failure.
      */
     int (*inject)(struct opentracing_tracer* tracer,
-                  opentracing_builtin_propagation_format format,
+                  opentracing_propagation_format format,
                   void* carrier);
 } opentracing_tracer;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* OPENTRACINGC_TRACER_H */

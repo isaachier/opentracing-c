@@ -5,6 +5,10 @@
 
 /** @file */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /** Boolean type. */
 typedef enum { opentracing_true = 1, opentracing_false = 0 } opentracing_bool;
 
@@ -19,5 +23,9 @@ typedef struct opentracing_timestamp {
     /** Timestamp value. */
     struct timespec value;
 } opentracing_timestamp;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* OPENTRACINGC_COMMON_H */

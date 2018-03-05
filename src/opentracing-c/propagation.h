@@ -3,6 +3,10 @@
 
 /** @file */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /** Error codes for errors occurring in span context propagation. */
 typedef enum opentracing_propagation_error_code {
     /**
@@ -38,37 +42,39 @@ typedef enum opentracing_propagation_error_code {
 } opentracing_propagation_error_code;
 
 /**
- * Builtin propagation formats.
+ * Propagation formats.
  */
-typedef enum opentracing_builtin_propagation_format {
+typedef enum opentracing_propagation_format {
     /** Represents span contexts as opaque binary data. */
-    opentracing_builtin_propagation_format_binary = 1,
+    opentracing_propagation_format_binary = 1,
 
     /**
      * Represents span contexts as key:value string pairs. Unlike
-     * opentracing_builtin_propagation_format_http_headers, the
-     * opentracing_builtin_propagation_format_text_map format does not restrict
+     * opentracing_propagation_format_http_headers, the
+     * opentracing_propagation_format_text_map format does not restrict
      * the key or value character sets in any way.
      */
-    opentracing_builtin_propagation_format_text_map = 2,
+    opentracing_propagation_format_text_map,
 
     /**
      * Represents span contexts as HTTP header string pairs. Unlike
-     * opentracing_builtin_propagation_format_text_map, the
-     * opentracing_builtin_propagation_format_http_headers requires that the
+     * opentracing_propagation_format_text_map, the
+     * opentracing_propagation_format_http_headers requires that the
      * keys and values be valid as HTTP headers as-is (i.e., character casing
      * may be unstable and special characters are disallowed in keys, values
      * should be URL-escaped, etc.).
      */
-    opentracing_builtin_propagation_format_http_headers = 3
-} opentracing_builtin_propagation_format;
+    opentracing_propagation_format_http_headers,
+} opentracing_propagation_format;
 
 /**
  * @todo Custom format and custom carrier interface.
  */
 
 /**
- * @link attention_block
+ * The inject carrier for the opentracing_propagation_format_text_map.
+ * With it, the caller can encode a span context for propagation as entries in a
+ * map of strings.
  * @attention The backing store for the opentracing_text_map_writer may
  *            contain data unrelated to span context. As such, inject() and
  *            extract() implementations that call the
@@ -76,17 +82,10 @@ typedef enum opentracing_builtin_propagation_format {
  *            interfaces must agree on a prefix or other convention to
  *            distinguish their own key:value pairs.
  */
-
-/**
- * The inject carrier for the opentracing_builtin_propagation_format_text_map.
- * With it, the caller can encode a span context for propagation as entries in a
- * map of strings.
- */
 typedef struct opentracing_text_map_writer {
     /**
      * Set a key:value pair to the carrier. Multiple calls to set() for the
      * same key leads to undefined behavior.
-     * @copydoc attention_block
      * @param key String key
      * @param value String value
      * @return Zero on success, error code on failure.
@@ -96,9 +95,15 @@ typedef struct opentracing_text_map_writer {
 } opentracing_text_map_writer;
 
 /**
- * The extract() carrier for the opentracing_builtin_propagation_format_text_map
+ * The extract() carrier for the opentracing_propagation_format_text_map
  * with it, the caller can decode a propagated span context as entries in a map
  * of strings.
+ * @attention The backing store for the opentracing_text_map_reader may
+ *            contain data unrelated to span context. As such, inject() and
+ *            extract() implementations that call the
+ *            opentracing_text_map_writer and opentracing_text_map_reader
+ *            interfaces must agree on a prefix or other convention to
+ *            distinguish their own key:value pairs.
  */
 typedef struct opentracing_text_map_reader {
     /**
@@ -107,7 +112,6 @@ typedef struct opentracing_text_map_reader {
      * error. The "foreach" callback pattern reduces unnecessary copying in some
      * cases and also allows implementations to hold locks while the map is
      * read.
-     * @copydoc attention_block
      * @param handler Function to call for each key:value pair. It should accept
      *                a key and a value as arguments, return zero on success,
      *                and a non-zero propagation error code on failure.
@@ -133,5 +137,9 @@ typedef struct opentracing_http_headers_reader {
     /** Base class. */
     opentracing_text_map_reader reader;
 } opentracing_http_headers_reader;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* OPENTRACINGC_PROPAGATION_H */

@@ -3,6 +3,10 @@
 
 /** @file */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Destructible interface. Essentially the same as a virtual destructor in C++,
  * but for C.
@@ -14,5 +18,9 @@ typedef struct opentracing_destructible {
      */
     void (*destroy)(struct opentracing_destructible* destructible);
 } opentracing_destructible;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* OPENTRACINGC_DESTRUCTIBLE_H */
