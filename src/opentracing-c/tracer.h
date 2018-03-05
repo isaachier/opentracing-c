@@ -5,11 +5,15 @@
 
 /** @file */
 
+/** Simple tag representation. */
 typedef struct opentracing_tag {
+    /** String key. */
     char* key;
+    /** Generic value type. */
     opentracing_value value;
 } opentracing_tag;
 
+/** Options used when calling start_span_with_options(). */
 typedef struct opentracing_start_span_options {
     /**
      * Start time using monotonic clock.
@@ -43,30 +47,27 @@ typedef struct opentracing_start_span_options {
     int num_tags;
 } opentracing_start_span_options;
 
-#define OPENTRACINGC_TRACER_SUBCLASS                                          \
-    /**                                                                       \
-     * Equivalent to calling start_span_with_options with options as          \
-     * NULL.                                                                  \
-     * @param tracer Tracer instance.                                         \
-     * @param operation_name Name of operation associated with span.          \
-     * @return Span pointer on success, NULL otherwise.                       \
-     */                                                                       \
-    opentracing_span* (*start_span)(struct opentracing_tracer * tracer,       \
-                                    const char* operation_name);              \
-                                                                              \
-    /**                                                                       \
-     * Start a new span with provided options.                                \
-     * @param tracer Tracer instance.                                         \
-     * @param operation_name Name of operation associated with span.          \
-     * @param options Options to override default span initialization values. \
-     * @return Span pointer on success, NULL otherwise.                       \
-     */                                                                       \
-    opentracing_span* (*start_span_with_options)(                             \
-        struct opentracing_tracer * tracer,                                   \
-        const opentracing_start_span_options* options)
-
+/** Tracer interface. */
 typedef struct opentracing_tracer {
-    OPENTRACINGC_TRACER_SUBCLASS;
+    /**
+     * Equivalent to calling start_span_with_options with options as NULL.
+     * @param tracer Tracer instance.
+     * @param operation_name Name of operation associated with span.
+     * @return Span pointer on success, NULL otherwise.
+     */
+    opentracing_span* (*start_span)(struct opentracing_tracer* tracer,
+                                    const char* operation_name);
+
+    /**
+     * Start a new span with provided options.
+     * @param tracer Tracer instance.
+     * @param operation_name Name of operation associated with span.
+     * @param options Options to override default span initialization values.
+     * @return Span pointer on success, NULL otherwise.
+     */
+    opentracing_span* (*start_span_with_options)(
+        struct opentracing_tracer* tracer,
+        const opentracing_start_span_options* options);
 } opentracing_tracer;
 
 #endif /* OPENTRACINGC_TRACER_H */

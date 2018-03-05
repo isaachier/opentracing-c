@@ -3,18 +3,16 @@
 
 /** @file */
 
-#define OPENTRACINGC_DESTRUCTIBLE_SUBCLASS                            \
-    /**                                                               \
-     * Destructor to clean up any resources allocated to this struct. \
-     * @param destructible Destructible instance.                     \
-     */                                                               \
-    void (*destroy)(struct opentracing_destructible * destructible)
-
 /**
- * Destructible interface.
+ * Destructible interface. Essentially the same as a virtual destructor in C++,
+ * but for C.
  */
 typedef struct opentracing_destructible {
-    OPENTRACINGC_DESTRUCTIBLE_SUBCLASS;
+    /**
+     * Destructor to clean up any resources allocated to the instance.
+     * @param destructible Destructible instance.
+     */
+    void (*destroy)(struct opentracing_destructible* destructible);
 } opentracing_destructible;
 
 #endif /* OPENTRACINGC_DESTRUCTIBLE_H */

@@ -6,29 +6,26 @@
 
 /** @file */
 
-#define OPENTRACINGC_SPAN_CONTEXT_SUBCLASS                                  \
-    OPENTRACINGC_DESTRUCTIBLE_SUBCLASS;                                     \
-                                                                            \
-    /**                                                                     \
-     * Calls a function for each baggage item in the span context. If the   \
-     * function returns opentracing_false, it will not be called again, and \
-     * foreach_baggage_item will return immediately.                        \
-     * @param span_context Span context instance.                           \
-     * @param f Callback function.                                          \
-     * @param arg Argument to pass to callback function.                    \
-     */                                                                     \
-    void (*foreach_baggage_item)(                                           \
-        struct opentracing_span_context * span_context,                     \
-        opentracing_bool(*f)(void*, const char*, const char*),              \
-        void* arg)
-
 /**
- * Interface for span context. Span context represents span state that must be
- * propagated to descendant spans and across boundaries (e.g. trace ID,
+ * Span context interface. Span context represents span state that must be
+ * propagated to descendant spans and across boundaries (e.g. trace I:D,
  * span ID, baggage).
+ * @extends opentracing_destructible
  */
 typedef struct opentracing_span_context {
-    OPENTRACINGC_SPAN_CONTEXT_SUBCLASS;
+    /**
+     * Calls a function for each baggage item in the span context. If the
+     * function returns opentracing_false, it will not be called again, and
+     * foreach_baggage_item will return immediately.
+     * @param span_context Span context instance.
+     * @param f Callback function.
+     * @param arg Argument to pass to callback function.
+     */
+    void (*foreach_baggage_item)(struct opentracing_span_context* span_context,
+                                 opentracing_bool (*f)(void*,
+                                                       const char*,
+                                                       const char*),
+                                 void* arg);
 } opentracing_span_context;
 
 /**
@@ -121,121 +118,118 @@ typedef struct opentracing_finish_span_options {
 /* Forward declaration. */
 struct opentracing_tracer;
 
-#define OPENTRACINGC_SPAN_SUBCLASS                                             \
-    /**                                                                        \
-     * Sets the end timestamp and finalizes span state.                        \
-     *                                                                         \
-     * With the exception of calls to context (which are always allowed),      \
-     * finish must be the last call made to any span instance, and to do       \
-     * otherwise leads to undefined behavior.                                  \
-     *                                                                         \
-     * @param span Span instance.                                              \
-     * @see context                                                            \
-     */                                                                        \
-    void (*finish)(struct opentracing_span * span);                            \
-                                                                               \
-    /**                                                                        \
-     * Like finish() but with explicit control over timestamps and log data.   \
-     * @param span Span instance.                                              \
-     * @param options Options to override in span completion.                  \
-     * @see finish                                                             \
-     */                                                                        \
-    void (*finish_with_options)(                                               \
-        struct opentracing_span * span,                                        \
-        const opentracing_finish_span_options* options);                       \
-                                                                               \
-    /**                                                                        \
-     * Yields the opentracing_span_context for this span. Note that the        \
-     * return value of context is still valid after a call to finish, as is    \
-     * a call to context after a call to finish.                               \
-     * @param span Span instance.                                              \
-     * @return Span context associated with this span.                         \
-     * @see finish                                                             \
-     */                                                                        \
-    opentracing_span_context (*span_context)(                                  \
-        const struct opentracing_span* span);                                  \
-                                                                               \
-    /**                                                                        \
-     * Sets or changes the operation name.                                     \
-     * @param span Span instance.                                              \
-     * @param operation_name New operation name.                               \
-     * @return opentracing_true if successful, opentracing_false otherwise     \
-     *         (indicates out of memory).                                      \
-     */                                                                        \
-    opentracing_bool (*set_operation_name)(struct opentracing_span * span,     \
-                                           const char* operation_name);        \
-                                                                               \
-    /**                                                                        \
-     * Adds a tag to the span. If there is a pre-existing tag set for `key`,   \
-     * it is overwritten. Tag values can be numeric types, strings, or bools.  \
-     * The behavior of other tag value types is undefined at the OpenTracing   \
-     * level. If a tracing system does not know how to handle a particular     \
-     * value type, it may ignore the tag, but shall not panic.                 \
-     * @param span Span instance.                                              \
-     * @param key Tag key.                                                     \
-     * @param value Tag value.                                                 \
-     * @return opentracing_true if successful, opentracing_false otherwise     \
-     *         (indicates out of memory).                                      \
-     */                                                                        \
-    opentracing_bool (*set_tag)(struct opentracing_span * span,                \
-                                const char* key,                               \
-                                const opentracing_value* value);               \
-                                                                               \
-    /**                                                                        \
-     * Record key:value logging data about a span.                             \
-     * @param span Span instance.                                              \
-     * @param fields Array of log fields.                                      \
-     * @param num_fields Number of log fields.                                 \
-     * @return opentracing_true if successful, opentracing_false otherwise     \
-     *         (indicates out of memory).                                      \
-     * @see finish_with_options                                                \
-     */                                                                        \
-    opentracing_bool (*log_fields)(struct opentracing_span * span,             \
-                                   const opentracing_log_field* fields,        \
-                                   int num_fields);                            \
-                                                                               \
-    /**                                                                        \
-     * Sets a key:value pair on this span and its span context that also       \
-     * propagates to descendants of this span. set_baggage_item() enables      \
-     * powerful functionality given a full-stack opentracing integration       \
-     * (e.g. arbitrary application data from a mobile app can make it,         \
-     * transparently, all the way into the depths of a storage system), and    \
-     * with it some powerful costs: use this feature with care.                \
-     * @attention set_baggage_item() will only propagate baggage items to      \
-     *            future causal descendants of the associated span.            \
-     * @attention Use this thoughtfully and with care. Every key and           \
-     *            value is copied into every local and remote child of the     \
-     *            associated span, and that can add up to a lot of network and \
-     *            CPU overhead.                                                \
-     * @param span Span instance.                                              \
-     * @param key Baggage key.                                                 \
-     * @param value Baggage value.                                             \
-     * @return opentracing_true if successful, opentracing_false otherwise     \
-     *         (indicates out of memory).                                      \
-     */                                                                        \
-    opentracing_bool (*set_baggage_item)(                                      \
-        struct opentracing_span * span, const char* key, const char* value);   \
-                                                                               \
-    /**                                                                        \
-     * Gets the value for a baggage item given its key.                        \
-     * @param span Span instance.                                              \
-     * @param key Baggage key.                                                 \
-     * @return If baggage key found, returns baggage value, otherwise returns  \
-     *         empty string.                                                   \
-     */                                                                        \
-    const char* (*baggage_item)(const struct opentracing_span* span,           \
-                                const char* key);                              \
-                                                                               \
-    /**                                                                        \
-     * Provides access to the tracer that created this span.                   \
-     * @param span Span instance.                                              \
-     * @return Tracer instance that created this span.                         \
-     */                                                                        \
-    struct opentracing_tracer* (*tracer)(struct opentracing_span * span)
-
 /** Span interface. */
 typedef struct opentracing_span {
-    OPENTRACINGC_SPAN_SUBCLASS;
+    /**
+     * Sets the end timestamp and finalizes span state.
+     *
+     * With the exception of calls to context (which are always allowed),
+     * finish must be the last call made to any span instance, and to do
+     * otherwise leads to undefined behavior.
+     *
+     * @param span Span instance.
+     * @see context
+     */
+    void (*finish)(struct opentracing_span* span);
+
+    /**
+     * Like finish() but with explicit control over timestamps and log data.
+     * @param span Span instance.
+     * @param options Options to override in span completion.
+     * @see finish
+     */
+    void (*finish_with_options)(struct opentracing_span* span,
+                                const opentracing_finish_span_options* options);
+
+    /**
+     * Yields the opentracing_span_context for this span. Note that the
+     * return value of context is still valid after a call to finish, as is
+     * a call to context after a call to finish.
+     * @param span Span instance.
+     * @return Span context associated with this span.
+     * @see finish
+     */
+    opentracing_span_context (*span_context)(
+        const struct opentracing_span* span);
+
+    /**
+     * Sets or changes the operation name.
+     * @param span Span instance.
+     * @param operation_name New operation name.
+     * @return opentracing_true if successful, opentracing_false otherwise
+     *         (indicates out of memory).
+     */
+    opentracing_bool (*set_operation_name)(struct opentracing_span* span,
+                                           const char* operation_name);
+
+    /**
+     * Adds a tag to the span. If there is a pre-existing tag set for `key`,
+     * it is overwritten. Tag values can be numeric types, strings, or bools.
+     * The behavior of other tag value types is undefined at the OpenTracing
+     * level. If a tracing system does not know how to handle a particular
+     * value type, it may ignore the tag, but shall not panic.
+     * @param span Span instance.
+     * @param key Tag key.
+     * @param value Tag value.
+     * @return opentracing_true if successful, opentracing_false otherwise
+     *         (indicates out of memory).
+     */
+    opentracing_bool (*set_tag)(struct opentracing_span* span,
+                                const char* key,
+                                const opentracing_value* value);
+
+    /**
+     * Record key:value logging data about a span.
+     * @param span Span instance.
+     * @param fields Array of log fields.
+     * @param num_fields Number of log fields.
+     * @return opentracing_true if successful, opentracing_false otherwise
+     *         (indicates out of memory).
+     * @see finish_with_options
+     */
+    opentracing_bool (*log_fields)(struct opentracing_span* span,
+                                   const opentracing_log_field* fields,
+                                   int num_fields);
+
+    /**
+     * Sets a key:value pair on this span and its span context that also
+     * propagates to descendants of this span. set_baggage_item() enables
+     * powerful functionality given a full-stack opentracing integration
+     * (e.g. arbitrary application data from a mobile app can make it,
+     * transparently, all the way into the depths of a storage system), and
+     * with it some powerful costs: use this feature with care.
+     * @attention set_baggage_item() will only propagate baggage items to
+     *            future causal descendants of the associated span.
+     * @attention Use this thoughtfully and with care. Every key and
+     *            value is copied into every local and remote child of the
+     *            associated span, and that can add up to a lot of network and
+     *            CPU overhead.
+     * @param span Span instance.
+     * @param key Baggage key.
+     * @param value Baggage value.
+     * @return opentracing_true if successful, opentracing_false otherwise
+     *         (indicates out of memory).
+     */
+    opentracing_bool (*set_baggage_item)(struct opentracing_span* span,
+                                         const char* key,
+                                         const char* value);
+
+    /**
+     * Gets the value for a baggage item given its key.
+     * @param span Span instance.
+     * @param key Baggage key.
+     * @return If baggage key found, returns baggage value, otherwise returns
+     *         empty string.
+     */
+    const char* (*baggage_item)(const struct opentracing_span* span,
+                                const char* key);
+
+    /**
+     * Provides access to the tracer that created this span.
+     * @param span Span instance.
+     * @return Tracer instance that created this span.
+     */
+    struct opentracing_tracer* (*tracer)(struct opentracing_span* span);
 } opentracing_span;
 
 #endif /* OPENTRACINGC_SPAN_H */
