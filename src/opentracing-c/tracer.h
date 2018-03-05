@@ -1,6 +1,7 @@
 #ifndef OPENTRACINGC_TRACER_H
 #define OPENTRACINGC_TRACER_H
 
+#include <opentracing-c/propagation.h>
 #include <opentracing-c/span.h>
 
 /** @file */
@@ -68,6 +69,17 @@ typedef struct opentracing_tracer {
     opentracing_span* (*start_span_with_options)(
         struct opentracing_tracer* tracer,
         const opentracing_start_span_options* options);
+
+    /**
+     * Inject span context into carrier.
+     * @param tracer Tracer instance.
+     * @param format Propagation format.
+     * @param carrier Opaque carrier.
+     * @return Zero on success, error code on failure.
+     */
+    int (*inject)(struct opentracing_tracer* tracer,
+                  opentracing_builtin_propagation_format format,
+                  void* carrier);
 } opentracing_tracer;
 
 #endif /* OPENTRACINGC_TRACER_H */
