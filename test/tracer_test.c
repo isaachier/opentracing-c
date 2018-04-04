@@ -100,8 +100,7 @@ int main(void)
     span->log_fields(span, NULL, 0);
 
     span->finish(span);
-    ((opentracing_destructible*) span)
-        ->destroy((opentracing_destructible*) span);
+    OPENTRACINGC_DEC_REF(span);
 
     return_code = tracer->extract_text_map(
         tracer, (opentracing_text_map_reader*) &text_map_reader, &span_context);
@@ -109,8 +108,7 @@ int main(void)
     assert(span_context != NULL);
     return_code = tracer->inject_text_map(
         tracer, (opentracing_text_map_writer*) &text_map_writer, span_context);
-    ((opentracing_destructible*) span_context)
-        ->destroy((opentracing_destructible*) span_context);
+    OPENTRACINGC_DEC_REF(span_context);
 
     return_code = tracer->extract_http_headers(
         tracer,
@@ -122,8 +120,7 @@ int main(void)
         tracer,
         (opentracing_http_headers_writer*) &http_headers_writer,
         span_context);
-    ((opentracing_destructible*) span_context)
-        ->destroy((opentracing_destructible*) span_context);
+    OPENTRACINGC_DEC_REF(span_context);
 
     return_code = tracer->extract_custom(
         tracer,
@@ -135,8 +132,7 @@ int main(void)
         tracer,
         (opentracing_custom_carrier_writer*) &custom_writer,
         span_context);
-    ((opentracing_destructible*) span_context)
-        ->destroy((opentracing_destructible*) span_context);
+    OPENTRACINGC_DEC_REF(span_context);
 
     return_code = tracer->extract_binary(
         tracer, &mock_binary_reader_callback, NULL, &span_context);
@@ -144,8 +140,7 @@ int main(void)
     assert(span_context != NULL);
     return_code = tracer->inject_binary(
         tracer, &mock_binary_write_callback, NULL, span_context);
-    ((opentracing_destructible*) span_context)
-        ->destroy((opentracing_destructible*) span_context);
+    OPENTRACINGC_DEC_REF(span_context);
 
     opentracing_init_global_tracer(opentracing_global_tracer());
 

@@ -9,7 +9,7 @@ static void noop_destroy(opentracing_destructible* destructible)
 
 #define NOOP_DESTRUCTIBLE_INIT \
     {                          \
-        &noop_destroy          \
+        &noop_destroy, 1       \
     }
 
 static void noop_foreach_baggage_item(opentracing_span_context* span_context,
@@ -238,7 +238,7 @@ void opentracing_init_global_tracer(opentracing_tracer* tracer)
     if (global_tracer == tracer) {
         return;
     }
-    ((opentracing_destructible*) global_tracer)
-        ->destroy((opentracing_destructible*) global_tracer);
+    OPENTRACINGC_DEC_REF(global_tracer);
+    OPENTRACINGC_INC_REF(tracer);
     global_tracer = tracer;
 }

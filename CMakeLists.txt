@@ -235,3 +235,14 @@ install(
     NAMESPACE "${namespace}"
     DESTINATION "${config_install_dir}"
 )
+
+option(OPENTRACINGC_ENABLE_LUA "Build lua library" OFF)
+if(OPENTRACINGC_ENABLE_LUA)
+  find_package(lua 5.3 REQUIRED)
+  add_library(opentracing SHARED bindings/lua/opentracing_lua.c)
+  set_target_properties(opentracing PROPERTIES PREFIX "")
+  target_include_directories(opentracing PUBLIC
+    ${LUA_INCLUDE_DIRS}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bindings/lua>)
+  target_link_libraries(opentracing PUBLIC opentracingc ${LUA_LIBRARIES})
+endif()
